@@ -1,14 +1,14 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module UI (loop) where
 
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
 import Lens.Micro ((^.))
 import Lens.Micro.Mtl
-import Lens.Micro.TH (makeLenses)
+
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -32,24 +32,16 @@ import Brick.Widgets.Core
     (<=>),
   )
 import Graphics.Vty qualified as V
+import State
 
-data CustomEvent = Counter deriving (Show)
-
-data St = St
-  { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent),
-    _stCounter :: Int
-  }
-
-makeLenses ''St
-
-drawUI :: St -> [Widget ()]
+drawUI :: GameState -> [Widget ()]
 drawUI st = [a]
   where
     a =
       (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
         <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
 
-appEvent :: BrickEvent () CustomEvent -> EventM () St ()
+appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 appEvent e =
   case e of
     VtyEvent (V.EvKey V.KEsc []) -> halt
@@ -59,14 +51,14 @@ appEvent e =
       stLastBrickEvent .= (Just e)
     _ -> return ()
 
-initialState :: St
+initialState :: GameState
 initialState =
-  St
+  GameState
     { _stLastBrickEvent = Nothing,
       _stCounter = 0
     }
 
-theApp :: App St CustomEvent ()
+theApp :: App GameState CustomEvent ()
 theApp =
   App
     { appDraw = drawUI,

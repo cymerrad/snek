@@ -27,6 +27,7 @@ library
   exposed-modules:
       Import
       Run
+      State
       Types
       UI
       Util
