@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Import
+      Logic
       Run
       State
       Types

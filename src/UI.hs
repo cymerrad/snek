@@ -6,6 +6,7 @@ module UI (loop) where
 
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
+-- import Control.Lens ((~.))
 import Lens.Micro ((^.))
 import Lens.Micro.Mtl
 
@@ -31,15 +32,24 @@ import Brick.Widgets.Core
   ( str,
     (<=>),
   )
+import Graphics.Vty (Output (displayBounds), outputIface, regionHeight, regionWidth)
 import Graphics.Vty qualified as V
+import Logic (gameEvent)
 import State
+
+renderMatrix :: CharMatrix -> [Widget ()]
+renderMatrix = map str
 
 drawUI :: GameState -> [Widget ()]
 drawUI st = [a]
   where
-    a =
-      (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
-        <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
+    grid = st ^. stGrid
+    a0 : as = renderMatrix grid
+    a = foldl (<=>) a0 as
+
+-- a =
+--   (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
+--     <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
 
 appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 appEvent e =
@@ -49,14 +59,10 @@ appEvent e =
     AppEvent Counter -> do
       stCounter %= (+ 1)
       stLastBrickEvent .= (Just e)
-    _ -> return ()
-
-initialState :: GameState
-initialState =
-  GameState
-    { _stLastBrickEvent = Nothing,
-      _stCounter = 0
-    }
+      gameEvent e
+    _ -> do
+      stLastBrickEvent .= (Just e)
+      gameEvent e
 
 theApp :: App GameState CustomEvent ()
 theApp =
@@ -78,4 +84,9 @@ loop = do
 
   let buildVty = V.mkVty V.defaultConfig
   initialVty <- buildVty
-  void $ customMain initialVty buildVty (Just chan) theApp initialState
+
+  terminalSize <- displayBounds $ outputIface initialVty
+
+  -- _ <- liftIO $ appendFile "/tmp/dupa.txt" ("Viewport size: " ++ show terminalSize)
+
+  void $ customMain initialVty buildVty (Just chan) theApp (initialState (regionWidth terminalSize, regionHeight terminalSize))
