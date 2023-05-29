@@ -46,11 +46,13 @@ renderMatrix :: CharMatrix -> [Widget ()]
 renderMatrix = map str
 
 drawUI :: GameState -> [Widget ()]
-drawUI st = [a]
-  where
-    grid = st ^. stGrid
-    a0 : as = renderMatrix grid
-    a = foldl (<=>) a0 as
+drawUI st = case st ^. stStatus of
+  Running -> [a]
+    where
+      grid = st ^. stGrid
+      a0 : as = renderMatrix grid
+      a = foldl (<=>) a0 as
+  Ended -> [(str $ "You suck :)")]
 
     -- a =
     --   (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))

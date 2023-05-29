@@ -8,10 +8,13 @@ module State
     CharMatrix,
     Snek (..),
     Block (..),
+    Status (..),
     stLastBrickEvent,
     stCounter,
     stGrid,
     stSnek,
+    stStatus,
+    stWindowSize,
     updateElement,
     initialState,
   )
@@ -31,7 +34,7 @@ data Block = Block
   { posX :: Int,
     posY :: Int
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 instance ToJSON Block where
   toJSON (Block x y) = object ["x" .= x, "y" .= y]
@@ -56,13 +59,19 @@ updateElement row col newChar matrix =
   where
     elementLens = ix row . ix col
 
+data Status
+  = Running
+  | Ended
+
 data GameState = GameState
   { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent),
     _stCounter :: Int,
-    _stWidth :: Int,
-    _stHeight :: Int,
+    -- _stWidth :: Int,
+    -- _stHeight :: Int,
+    _stWindowSize :: (Int, Int),
     _stGrid :: CharMatrix,
-    _stSnek :: Snek
+    _stSnek :: Snek,
+    _stStatus :: Status
   }
 
 makeLenses ''GameState
@@ -72,8 +81,9 @@ initialState (width, height) =
   GameState
     { _stLastBrickEvent = Nothing,
       _stCounter = 0,
-      _stWidth = width,
-      _stHeight = height,
+      -- _stWidth = width,
+      -- _stHeight = height,
+      _stWindowSize = (width, height),
       _stGrid = replicate height (replicate width ' '),
       _stSnek =
         Snek
@@ -86,5 +96,6 @@ initialState (width, height) =
                 ],
             dirX = 1,
             dirY = 0
-          }
+          },
+      _stStatus = Running
     }
