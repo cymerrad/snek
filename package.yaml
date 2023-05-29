@@ -27,6 +27,9 @@ dependencies:
 - microlens
 - microlens-mtl
 - microlens-th
+- aeson
+- aeson-pretty
+- bytestring
 
 ghc-options:
 - -Wall

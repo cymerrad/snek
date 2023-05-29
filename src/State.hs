@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -19,16 +20,35 @@ where
 import Brick.Types
   ( BrickEvent (..),
   )
+import Data.Aeson
+import Data.List.NonEmpty
 import Lens.Micro
 import Lens.Micro.TH (makeLenses)
 
 data CustomEvent = Counter deriving (Show)
 
-data Block = Block {posX :: Int, posY :: Int}
+data Block = Block
+  { posX :: Int,
+    posY :: Int
+  }
+  deriving (Show)
 
-data Snek = Snek {blocks :: [Block], dirX :: Int, dirY :: Int}
+instance ToJSON Block where
+  toJSON (Block x y) = object ["x" .= x, "y" .= y]
 
-type CharMatrix = [[Char]]
+data Snek = Snek
+  { blocks :: NonEmpty Block,
+    dirX :: Int,
+    dirY :: Int
+  }
+  deriving (Show)
+
+instance ToJSON Snek where
+  toJSON (Snek bs x y) = object ["bs" .= bs, "x" .= x, "y" .= y]
+
+type Matrix a = [[a]]
+
+type CharMatrix = Matrix Char
 
 updateElement :: Int -> Int -> Char -> CharMatrix -> CharMatrix
 updateElement row col newChar matrix =
@@ -55,5 +75,16 @@ initialState (width, height) =
       _stWidth = width,
       _stHeight = height,
       _stGrid = replicate height (replicate width ' '),
-      _stSnek = Snek {blocks = [Block 1 0, Block 0 0, Block 0 1, Block 0 2], dirX = 1, dirY = 1}
+      _stSnek =
+        Snek
+          { blocks =
+              fromList
+                [ Block 1 0,
+                  Block 0 0,
+                  Block 0 1,
+                  Block 0 2
+                ],
+            dirX = 1,
+            dirY = 0
+          }
     }

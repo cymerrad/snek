@@ -38,8 +38,11 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.11 && <10
+      aeson
+    , aeson-pretty
+    , base >=4.11 && <10
     , brick
+    , bytestring
     , microlens
     , microlens-mtl
     , microlens-th
@@ -55,8 +58,11 @@ executable snake-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      aeson
+    , aeson-pretty
+    , base >=4.11 && <10
     , brick
+    , bytestring
     , microlens
     , microlens-mtl
     , microlens-th
@@ -76,8 +82,11 @@ test-suite snake-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11 && <10
+      aeson
+    , aeson-pretty
+    , base >=4.11 && <10
     , brick
+    , bytestring
     , hspec
     , microlens
     , microlens-mtl

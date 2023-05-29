@@ -1,6 +1,9 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Move brackets to avoid $" #-}
 
 module UI (loop) where
 
@@ -32,6 +35,8 @@ import Brick.Widgets.Core
   ( str,
     (<=>),
   )
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.ByteString.Lazy.Char8 qualified as BSL
 import Graphics.Vty (Output (displayBounds), outputIface, regionHeight, regionWidth)
 import Graphics.Vty qualified as V
 import Logic (gameEvent)
@@ -47,15 +52,19 @@ drawUI st = [a]
     a0 : as = renderMatrix grid
     a = foldl (<=>) a0 as
 
--- a =
---   (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
---     <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
+    -- a =
+    --   (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
+    --     <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
+    --     <=> (str $ "Snek: " <> (BSL.unpack . encodePretty $ st ^. stSnek))
 
 appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
-appEvent e =
+appEvent e = do
+  case e of
+    VtyEvent _ -> stLastBrickEvent .= (Just e)
+    _ -> return ()
+
   case e of
     VtyEvent (V.EvKey V.KEsc []) -> halt
-    VtyEvent _ -> stLastBrickEvent .= (Just e)
     AppEvent Counter -> do
       stCounter %= (+ 1)
       stLastBrickEvent .= (Just e)
