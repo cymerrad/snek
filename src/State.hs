@@ -9,12 +9,16 @@ module State
     Snek (..),
     Block (..),
     Status (..),
+    Objective (..),
     stLastBrickEvent,
     stCounter,
     stGrid,
     stSnek,
     stStatus,
+    stObjective,
     stWindowSize,
+    oLocations,
+    oPoints,
     updateElement,
     initialState,
   )
@@ -42,12 +46,13 @@ instance ToJSON Block where
 data Snek = Snek
   { blocks :: NonEmpty Block,
     dirX :: Int,
-    dirY :: Int
+    dirY :: Int,
+    l :: Int
   }
   deriving (Show)
 
 instance ToJSON Snek where
-  toJSON (Snek bs x y) = object ["bs" .= bs, "x" .= x, "y" .= y]
+  toJSON (Snek (h :| _) x y _) = object ["head" .= h, "x" .= x, "y" .= y]
 
 type Matrix a = [[a]]
 
@@ -63,26 +68,28 @@ data Status
   = Running
   | Ended
 
+data Objective = Objective
+  { _oLocations :: [Block],
+    _oPoints :: Int
+  }
+
 data GameState = GameState
   { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent),
     _stCounter :: Int,
-    -- _stWidth :: Int,
-    -- _stHeight :: Int,
     _stWindowSize :: (Int, Int),
     _stGrid :: CharMatrix,
     _stSnek :: Snek,
-    _stStatus :: Status
+    _stStatus :: Status,
+    _stObjective :: Objective
   }
 
-makeLenses ''GameState
+concat <$> mapM makeLenses [''Objective, ''GameState]
 
 initialState :: (Int, Int) -> GameState
 initialState (width, height) =
   GameState
     { _stLastBrickEvent = Nothing,
       _stCounter = 0,
-      -- _stWidth = width,
-      -- _stHeight = height,
       _stWindowSize = (width, height),
       _stGrid = replicate height (replicate width ' '),
       _stSnek =
@@ -91,11 +98,12 @@ initialState (width, height) =
               fromList
                 [ Block 1 0,
                   Block 0 0,
-                  Block 0 1,
-                  Block 0 2
+                  Block 0 1
                 ],
             dirX = 1,
-            dirY = 0
+            dirY = 0,
+            l = 4
           },
-      _stStatus = Running
+      _stStatus = Running,
+      _stObjective = Objective [] 0
     }

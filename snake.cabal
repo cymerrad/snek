@@ -46,6 +46,7 @@ library
     , microlens
     , microlens-mtl
     , microlens-th
+    , random
     , rio >=0.1.12.0
     , vty
   default-language: Haskell2010
@@ -67,6 +68,7 @@ executable snake-exe
     , microlens-mtl
     , microlens-th
     , optparse-simple
+    , random
     , rio >=0.1.12.0
     , snake
     , vty
@@ -91,6 +93,7 @@ test-suite snake-test
     , microlens
     , microlens-mtl
     , microlens-th
+    , random
     , rio >=0.1.12.0
     , snake
     , vty

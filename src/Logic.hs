@@ -7,10 +7,19 @@ import Brick.Types
     EventM,
   )
 import Control.Monad (when)
--- import Control.Monad.IO.Class
+import Control.Monad.IO.Class
 -- import Data.Aeson.Encode.Pretty
 -- import Data.ByteString.Lazy qualified as BSL
-import Data.List.NonEmpty (NonEmpty ((:|)), init, length, nub)
+
+import Data.List (intersect)
+import Data.List.NonEmpty
+  ( NonEmpty ((:|)),
+    fromList,
+    init,
+    length,
+    nub,
+    toList,
+  )
 import Graphics.Vty qualified as V
 import Lens.Micro
 import Lens.Micro.Mtl
@@ -19,22 +28,27 @@ import State
     CharMatrix,
     CustomEvent (..),
     GameState,
-    Snek (blocks, dirX, dirY),
+    Snek (..),
     Status (Ended),
+    oLocations,
+    oPoints,
     stGrid,
+    stObjective,
     stSnek,
     stStatus,
     stWindowSize,
     updateElement,
   )
+import System.Random
 import Prelude hiding (init, length)
 
 gameEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 gameEvent e = do
   steerSnek e
-  updateSnek
+  moveSnek
   checkCollision
   updateGrid
+  drawGrid
 
 steerSnek :: BrickEvent () CustomEvent -> EventM () GameState ()
 steerSnek (VtyEvent (V.EvKey (V.KChar c) []))
@@ -45,34 +59,81 @@ steerSnek (VtyEvent (V.EvKey (V.KChar c) []))
   | otherwise = return ()
 steerSnek _ = return ()
 
-updateSnek :: EventM () GameState ()
-updateSnek = do
+moveSnek :: EventM () GameState ()
+moveSnek = do
   stSnek %= processSnek
   where
     processSnek snek =
       let (head_ :| body) = blocks snek
           newHead = Block (posX head_ + dirX snek) (posY head_ + dirY snek)
-          newBody = init (head_ :| body)
+          -- newBody = init (head_ :| body)
+          newBody :: [Block]
+          newBody =
+            if length (blocks snek) < l snek
+              then toList (head_ :| body)
+              else init (head_ :| body)
        in snek {blocks = newHead :| newBody}
 
 checkCollision :: EventM () GameState ()
 checkCollision = do
   (wW, wH) <- use stWindowSize
   snek <- use stSnek
+  fud <- use (stObjective . oLocations)
   let ((Block headX headY) :| _) = blocks snek
 
   let outOfBounds = headX < 0 || headX >= wW || headY < 0 || headY >= wH
   let hitItself = hasDuplicates (blocks snek)
 
+  let snekFudIntersection = fud `intersect` toList (blocks snek)
+  let hitFud = not . null $ snekFudIntersection
+
   when (outOfBounds || hitItself) gameOver
+
+  when hitFud $ do
+    let foundFud : _ = snekFudIntersection
+    stObjective . oLocations %= filter (/= foundFud)
+    stObjective . oPoints += 1
+    stSnek %= \s -> s {l = l s + 1}
   where
     hasDuplicates xs = length xs /= length (nub xs)
 
 updateGrid :: EventM () GameState ()
 updateGrid = do
+  (wW, wH) <- use stWindowSize
+  existingLocations <- use (stObjective . oLocations)
   snek <- use stSnek
+  let snakeLocations = toList $ blocks snek
+  filledLocations <-
+    liftIO $
+      generateNonOverlappingCoordinates
+        wW
+        wH
+        snakeLocations
+        existingLocations
+        (5 - myLength existingLocations)
+  (stObjective . oLocations) .= filledLocations
+  where
+    myLength = foldr (\_ acc -> acc + 1) 0
+
+generateNonOverlappingCoordinates :: Int -> Int -> [Block] -> [Block] -> Int -> IO [Block]
+generateNonOverlappingCoordinates maxX maxY snakeLocations = go
+  where
+    go :: [Block] -> Int -> IO [Block]
+    go acc 0 = return acc
+    go acc count = do
+      newBlock <- Block <$> randomRIO (0, maxX) <*> randomRIO (0, maxY)
+      if (newBlock `elem` acc) || (newBlock `elem` snakeLocations)
+        then go acc count
+        else go (newBlock : acc) (count - 1)
+
+drawGrid :: EventM () GameState ()
+drawGrid = do
+  snek <- use stSnek
+  fud <- use (stObjective . oLocations)
+
   stGrid %= (traversed . traversed .~ ' ')
   stGrid %= drawBlocks 'O' (blocks snek)
+  stGrid %= drawBlocks '+' (fromList fud)
 
 drawBlocks :: Char -> NonEmpty Block -> CharMatrix -> CharMatrix
 drawBlocks char blocks matrix =
