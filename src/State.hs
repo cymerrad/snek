@@ -19,6 +19,12 @@ module State
     stWindowSize,
     oLocations,
     oPoints,
+    bX,
+    bY,
+    sBlocks,
+    sDirX,
+    sDirY,
+    sL,
     updateElement,
     initialState,
   )
@@ -35,8 +41,8 @@ import Lens.Micro.TH (makeLenses)
 data CustomEvent = Counter deriving (Show)
 
 data Block = Block
-  { posX :: Int,
-    posY :: Int
+  { _bX :: Int,
+    _bY :: Int
   }
   deriving (Show, Eq)
 
@@ -44,10 +50,10 @@ instance ToJSON Block where
   toJSON (Block x y) = object ["x" .= x, "y" .= y]
 
 data Snek = Snek
-  { blocks :: NonEmpty Block,
-    dirX :: Int,
-    dirY :: Int,
-    l :: Int
+  { _sBlocks :: NonEmpty Block,
+    _sDirX :: Int,
+    _sDirY :: Int,
+    _sL :: Int
   }
   deriving (Show)
 
@@ -83,7 +89,7 @@ data GameState = GameState
     _stObjective :: Objective
   }
 
-concat <$> mapM makeLenses [''Objective, ''GameState]
+concat <$> mapM makeLenses [''Block, ''Snek, ''Objective, ''GameState]
 
 initialState :: (Int, Int) -> GameState
 initialState (width, height) =
@@ -94,15 +100,15 @@ initialState (width, height) =
       _stGrid = replicate height (replicate width ' '),
       _stSnek =
         Snek
-          { blocks =
+          { _sBlocks =
               fromList
                 [ Block 1 0,
                   Block 0 0,
                   Block 0 1
                 ],
-            dirX = 1,
-            dirY = 0,
-            l = 4
+            _sDirX = 1,
+            _sDirY = 0,
+            _sL = 4
           },
       _stStatus = Running,
       _stObjective = Objective [] 0
