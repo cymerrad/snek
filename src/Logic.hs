@@ -109,13 +109,13 @@ updateGrid = do
   existingLocations <- use (stObjective . oLocations)
   snek <- use stSnek
   spawnsNo <- use (stObjective . oSpawns)
-  let snakeLocations = toList $ snek ^. sBlocks
+  let snekLocations = toList $ snek ^. sBlocks
   filledLocations <-
     liftIO $
       generateNonOverlappingCoordinates
         (wW - 1)
         (wH - 1)
-        snakeLocations
+        snekLocations
         existingLocations
         (spawnsNo - myLength existingLocations)
   (stObjective . oLocations) .= filledLocations
@@ -123,13 +123,13 @@ updateGrid = do
     myLength = foldr (\_ acc -> acc + 1) 0
 
 generateNonOverlappingCoordinates :: Int -> Int -> [Block] -> [Block] -> Int -> IO [Block]
-generateNonOverlappingCoordinates maxX maxY snakeLocations = go
+generateNonOverlappingCoordinates maxX maxY snekLocations = go
   where
     go :: [Block] -> Int -> IO [Block]
     go acc 0 = return acc
     go acc count = do
       newBlock <- Block <$> randomRIO (0, maxX) <*> randomRIO (0, maxY)
-      if (newBlock `elem` acc) || (newBlock `elem` snakeLocations)
+      if (newBlock `elem` acc) || (newBlock `elem` snekLocations)
         then go acc count
         else go (newBlock : acc) (count - 1)
 

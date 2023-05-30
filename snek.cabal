@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           snake
+name:           snek
 version:        0.1.0.0
-description:    Please see the README on Github at <https://github.com/githubuser/snake#readme>
-homepage:       https://github.com/githubuser/snake#readme
-bug-reports:    https://github.com/githubuser/snake/issues
-author:         Author name here
-maintainer:     example@example.com
+description:    Please see the README on Github at <https://github.com/githubuser/snek#readme>
+homepage:       https://github.com/cymerrad/snek#readme
+bug-reports:    https://github.com/cymerrad/snek/issues
+author:         Rado Cymer
+maintainer:     cymerrad@gmail.com
 copyright:      2023 Author name here
 license:        BSD3
 license-file:   LICENSE
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/snake
+  location: https://github.com/cymerrad/snek
 
 library
   exposed-modules:
@@ -33,7 +33,7 @@ library
       UI
       Util
   other-modules:
-      Paths_snake
+      Paths_snek
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -52,10 +52,10 @@ library
     , word-wrap
   default-language: Haskell2010
 
-executable snake-exe
+executable snek-exe
   main-is: Main.hs
   other-modules:
-      Paths_snake
+      Paths_snek
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -71,17 +71,17 @@ executable snake-exe
     , optparse-simple
     , random
     , rio >=0.1.12.0
-    , snake
+    , snek
     , vty
     , word-wrap
   default-language: Haskell2010
 
-test-suite snake-test
+test-suite snek-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
       UtilSpec
-      Paths_snake
+      Paths_snek
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -97,7 +97,7 @@ test-suite snake-test
     , microlens-th
     , random
     , rio >=0.1.12.0
-    , snake
+    , snek
     , vty
     , word-wrap
   default-language: Haskell2010

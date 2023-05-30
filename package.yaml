@@ -1,9 +1,9 @@
-name:                snake
+name:                snek
 version:             0.1.0.0
-github:              githubuser/snake
+github:              cymerrad/snek
 license:             BSD3
-author:              Author name here
-maintainer:          example@example.com
+author:              Rado Cymer
+maintainer:          cymerrad@gmail.com
 copyright:           2023 Author name here
 
 extra-source-files:
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/githubuser/snake#readme>
+description:         Please see the README on Github at <https://github.com/githubuser/snek#readme>
 
 dependencies:
 - base >= 4.11 && < 10
@@ -48,11 +48,11 @@ library:
   source-dirs: src
 
 executables:
-  snake-exe:
+  snek-exe:
     main:                Main.hs
     source-dirs:         app
     dependencies:
-    - snake
+    - snek
     - optparse-simple
 
     ghc-options:
@@ -61,11 +61,11 @@ executables:
     - -with-rtsopts=-N
 
 tests:
-  snake-test:
+  snek-test:
     main:                Spec.hs
     source-dirs:         test
     dependencies:
-    - snake
+    - snek
     - hspec
 
     ghc-options:
