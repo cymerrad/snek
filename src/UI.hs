@@ -36,11 +36,11 @@ import Brick.Widgets.Border.Style (unicode)
 import Brick.Widgets.Center (center)
 import Brick.Widgets.Core
   ( fill,
+    hLimitPercent,
     joinBorders,
     str,
     vBox,
     vLimit,
-    vLimitPercent,
     withBorderStyle,
     (<+>),
     (<=>),
@@ -55,8 +55,8 @@ import State
 renderMatrix :: CharMatrix -> [Widget ()]
 renderMatrix = map str
 
-drawUI :: GameState -> [Widget ()]
-drawUI st = case st ^. stStatus of
+drawBoard :: GameState -> [Widget ()]
+drawBoard st = case st ^. stStatus of
   Running -> [a]
     where
       grid = st ^. stGrid
@@ -70,19 +70,27 @@ bordersHorizontal = 2
 
 drawWithShinyBorder :: GameState -> [Widget ()]
 drawWithShinyBorder st =
-  [ joinBorders $
-      withBorderStyle unicode $
-        borderWithLabel (str "Snek") $
-          vBox $
-            drawUI st
-              ++ [ hBorder,
-                   vLimit 2 $
-                     vBox
-                       [ str "This text is in the bottom 10% of the window due to a fill and vLimit.",
-                         fill ' '
-                       ]
-                 ]
-  ]
+  let score = show $ st ^. stObjective . oPoints
+      time = show $ st ^. stCounter
+   in [ joinBorders $
+          withBorderStyle unicode $
+            borderWithLabel (str "Snek") $
+              vBox $
+                drawBoard st
+                  ++ [ hBorder,
+                       vLimit 2 $
+                         hLimitPercent 69 $
+                           vBox
+                             [ str "WASD to move" <+> fill ' ',
+                               str "(Q) or (Esc) to quit"
+                             ]
+                             <+> vBorder
+                             <+> vBox
+                               [ str $ "Score: " <> score,
+                                 str $ "Time: " <> time
+                               ]
+                     ]
+      ]
 
 appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 appEvent e = do
