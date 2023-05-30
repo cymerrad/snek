@@ -31,8 +31,18 @@ import Brick.Types
     EventM,
     Widget,
   )
+import Brick.Widgets.Border (borderWithLabel, hBorder, vBorder)
+import Brick.Widgets.Border.Style (unicode)
+import Brick.Widgets.Center (center)
 import Brick.Widgets.Core
-  ( str,
+  ( fill,
+    joinBorders,
+    str,
+    vBox,
+    vLimit,
+    vLimitPercent,
+    withBorderStyle,
+    (<+>),
     (<=>),
   )
 import Data.Aeson.Encode.Pretty (encodePretty)
@@ -52,12 +62,27 @@ drawUI st = case st ^. stStatus of
       grid = st ^. stGrid
       a0 : as = renderMatrix grid
       a = foldl (<=>) a0 as
-  Ended -> [(str $ "You suck :)")]
+  Ended -> [center . str $ "You suck :)"]
 
-    -- a =
-    --   (str $ "Last event: " <> (show $ st ^. stLastBrickEvent))
-    --     <=> (str $ "Counter value is: " <> (show $ st ^. stCounter))
-    --     <=> (str $ "Snek: " <> (BSL.unpack . encodePretty $ st ^. stSnek))
+bordersVertical = 5
+
+bordersHorizontal = 2
+
+drawWithShinyBorder :: GameState -> [Widget ()]
+drawWithShinyBorder st =
+  [ joinBorders $
+      withBorderStyle unicode $
+        borderWithLabel (str "Snek") $
+          vBox $
+            drawUI st
+              ++ [ hBorder,
+                   vLimit 2 $
+                     vBox
+                       [ str "This text is in the bottom 10% of the window due to a fill and vLimit.",
+                         fill ' '
+                       ]
+                 ]
+  ]
 
 appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 appEvent e = do
@@ -67,6 +92,7 @@ appEvent e = do
 
   case e of
     VtyEvent (V.EvKey V.KEsc []) -> halt
+    VtyEvent (V.EvKey (V.KChar 'q') []) -> halt
     AppEvent Counter -> do
       stCounter %= (+ 1)
       stLastBrickEvent .= (Just e)
@@ -78,7 +104,7 @@ appEvent e = do
 theApp :: App GameState CustomEvent ()
 theApp =
   App
-    { appDraw = drawUI,
+    { appDraw = drawWithShinyBorder,
       appChooseCursor = showFirstCursor,
       appHandleEvent = appEvent,
       appStartEvent = return (),
@@ -98,6 +124,14 @@ loop = do
 
   terminalSize <- displayBounds $ outputIface initialVty
 
-  -- _ <- liftIO $ appendFile "/tmp/dupa.txt" ("Viewport size: " ++ show terminalSize)
-
-  void $ customMain initialVty buildVty (Just chan) theApp (initialState (regionWidth terminalSize, regionHeight terminalSize))
+  void $
+    customMain
+      initialVty
+      buildVty
+      (Just chan)
+      theApp
+      ( initialState
+          ( regionWidth terminalSize - bordersHorizontal,
+            regionHeight terminalSize - bordersVertical
+          )
+      )
