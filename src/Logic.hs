@@ -21,7 +21,7 @@ import Data.List.NonEmpty
     toList,
   )
 import Graphics.Vty qualified as V
-import Lens.Micro
+import Lens.Micro (traversed, (.~), (^.))
 import Lens.Micro.Mtl
 import State
   ( Block (..),
@@ -34,6 +34,7 @@ import State
     bY,
     oLocations,
     oPoints,
+    oSpawns,
     sBlocks,
     sDirX,
     sDirY,
@@ -107,6 +108,7 @@ updateGrid = do
   (wW, wH) <- use stWindowSize
   existingLocations <- use (stObjective . oLocations)
   snek <- use stSnek
+  spawnsNo <- use (stObjective . oSpawns)
   let snakeLocations = toList $ snek ^. sBlocks
   filledLocations <-
     liftIO $
@@ -115,7 +117,7 @@ updateGrid = do
         (wH - 1)
         snakeLocations
         existingLocations
-        (5 - myLength existingLocations)
+        (spawnsNo - myLength existingLocations)
   (stObjective . oLocations) .= filledLocations
   where
     myLength = foldr (\_ acc -> acc + 1) 0

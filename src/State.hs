@@ -19,6 +19,7 @@ module State
     stWindowSize,
     oLocations,
     oPoints,
+    oSpawns,
     bX,
     bY,
     sBlocks,
@@ -80,17 +81,24 @@ updateElement row col newChar matrix =
 
 data Status
   = Running
+  | Menu
   | Ended
   | Pause
   deriving (Show)
 
 data Objective = Objective
   { _oLocations :: [Block],
-    _oPoints :: Int
+    _oPoints :: Int,
+    _oSpawns :: Int
   }
 
 instance ToJSON Objective where
-  toJSON (Objective locations points) = object ["locations" .= locations, "points" .= points]
+  toJSON (Objective locations points spawns) =
+    object
+      [ "locations" .= locations,
+        "points" .= points,
+        "spawns" .= spawns
+      ]
 
 instance FromJSON Objective where
   parseJSON = withObject "Objective" $ \v ->
@@ -99,6 +107,8 @@ instance FromJSON Objective where
       .: "locations"
       <*> v
       .: "points"
+      <*> v
+      .: "spawns"
 
 data GameState = GameState
   { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent),
@@ -140,5 +150,5 @@ initialState (width, height) =
             _sL = 3
           },
       _stStatus = Running,
-      _stObjective = Objective [] 0
+      _stObjective = Objective [] 0 10
     }
