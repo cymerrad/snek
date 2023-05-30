@@ -111,8 +111,8 @@ updateGrid = do
   filledLocations <-
     liftIO $
       generateNonOverlappingCoordinates
-        wW
-        wH
+        (wW - 1)
+        (wH - 1)
         snakeLocations
         existingLocations
         (5 - myLength existingLocations)
