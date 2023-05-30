@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -16,41 +17,20 @@ import Lens.Micro.Mtl
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Brick.AttrMap
-  ( attrMap,
-  )
-import Brick.BChan
-import Brick.Main
-  ( App (..),
-    customMain,
-    halt,
-    showFirstCursor,
-  )
-import Brick.Types
-  ( BrickEvent (..),
-    EventM,
-    Widget,
-  )
+
+import Brick
+import Brick.BChan (newBChan, writeBChan)
 import Brick.Widgets.Border (borderWithLabel, hBorder, vBorder)
 import Brick.Widgets.Border.Style (unicode)
 import Brick.Widgets.Center (center)
-import Brick.Widgets.Core
-  ( fill,
-    hLimitPercent,
-    joinBorders,
-    str,
-    vBox,
-    vLimit,
-    withBorderStyle,
-    (<+>),
-    (<=>),
-  )
 import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Graphics.Vty (Output (displayBounds), outputIface, regionHeight, regionWidth)
 import Graphics.Vty qualified as V
 import Logic (gameEvent)
 import State
+import Text.Wrap (defaultWrapSettings, preserveIndentation)
+import Data.Aeson (encode)
 
 renderMatrix :: CharMatrix -> [Widget ()]
 renderMatrix = map str
@@ -62,10 +42,21 @@ drawBoard st = case st ^. stStatus of
       grid = st ^. stGrid
       a0 : as = renderMatrix grid
       a = foldl (<=>) a0 as
-  Ended -> [center . str $ "You suck :)"]
+  Ended -> [center . str $ "Game over"]
+  Pause -> [t, fill ' ']
+    where
+      settings = defaultWrapSettings {preserveIndentation = True}
+      t =
+        strWrapWith settings $
+          "Press (P) to unpause. Also a debug log.\n"
+            <> (BSL.unpack $ encodePretty st) <> "\n"
+            <> (BSL.unpack $ encodePretty $ st ^. stSnek) <> "\n"
+            <> (BSL.unpack $ encode $ st ^. stObjective) <> "\n"
 
+bordersVertical :: Int
 bordersVertical = 5
 
+bordersHorizontal :: Int
 bordersHorizontal = 2
 
 drawWithShinyBorder :: GameState -> [Widget ()]
@@ -82,7 +73,7 @@ drawWithShinyBorder st =
                          hLimitPercent 69 $
                            vBox
                              [ str "WASD to move" <+> fill ' ',
-                               str "(Q) or (Esc) to quit"
+                               str "(Q) or (Esc) to quit. (P) to pause."
                              ]
                              <+> vBorder
                              <+> vBox
@@ -94,20 +85,27 @@ drawWithShinyBorder st =
 
 appEvent :: BrickEvent () CustomEvent -> EventM () GameState ()
 appEvent e = do
-  case e of
-    VtyEvent _ -> stLastBrickEvent .= (Just e)
-    _ -> return ()
+  stLastBrickEvent .= Just e
 
   case e of
     VtyEvent (V.EvKey V.KEsc []) -> halt
     VtyEvent (V.EvKey (V.KChar 'q') []) -> halt
-    AppEvent Counter -> do
-      stCounter %= (+ 1)
-      stLastBrickEvent .= (Just e)
-      gameEvent e
-    _ -> do
-      stLastBrickEvent .= (Just e)
-      gameEvent e
+    VtyEvent (V.EvKey (V.KChar 'p') []) -> do
+      stStatus %= \case
+        Pause -> Running
+        Running -> Pause
+        Ended -> Ended
+    _ -> return ()
+
+  status <- use stStatus
+  case status of
+    Pause -> return ()
+    Ended -> return ()
+    Running -> case e of
+      AppEvent Counter -> do
+        stCounter %= (+ 1)
+        gameEvent e
+      _ -> gameEvent e
 
 theApp :: App GameState CustomEvent ()
 theApp =

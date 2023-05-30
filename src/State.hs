@@ -49,6 +49,14 @@ data Block = Block
 instance ToJSON Block where
   toJSON (Block x y) = object ["x" .= x, "y" .= y]
 
+instance FromJSON Block where
+  parseJSON = withObject "Block" $ \v ->
+    Block
+      <$> v
+      .: "x"
+      <*> v
+      .: "y"
+
 data Snek = Snek
   { _sBlocks :: NonEmpty Block,
     _sDirX :: Int,
@@ -73,11 +81,24 @@ updateElement row col newChar matrix =
 data Status
   = Running
   | Ended
+  | Pause
+  deriving (Show)
 
 data Objective = Objective
   { _oLocations :: [Block],
     _oPoints :: Int
   }
+
+instance ToJSON Objective where
+  toJSON (Objective locations points) = object ["locations" .= locations, "points" .= points]
+
+instance FromJSON Objective where
+  parseJSON = withObject "Objective" $ \v ->
+    Objective
+      <$> v
+      .: "locations"
+      <*> v
+      .: "points"
 
 data GameState = GameState
   { _stLastBrickEvent :: Maybe (BrickEvent () CustomEvent),
@@ -88,6 +109,14 @@ data GameState = GameState
     _stStatus :: Status,
     _stObjective :: Objective
   }
+
+instance ToJSON GameState where
+  toJSON gs =
+    object
+      [ "lastEvent" .= show (_stLastBrickEvent gs),
+        "windowSize" .= show (_stWindowSize gs),
+        "status" .= show (_stStatus gs)
+      ]
 
 concat <$> mapM makeLenses [''Block, ''Snek, ''Objective, ''GameState]
 
@@ -108,7 +137,7 @@ initialState (width, height) =
                 ],
             _sDirX = 1,
             _sDirY = 0,
-            _sL = 4
+            _sL = 3
           },
       _stStatus = Running,
       _stObjective = Objective [] 0

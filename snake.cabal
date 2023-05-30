@@ -49,6 +49,7 @@ library
     , random
     , rio >=0.1.12.0
     , vty
+    , word-wrap
   default-language: Haskell2010
 
 executable snake-exe
@@ -72,6 +73,7 @@ executable snake-exe
     , rio >=0.1.12.0
     , snake
     , vty
+    , word-wrap
   default-language: Haskell2010
 
 test-suite snake-test
@@ -97,4 +99,5 @@ test-suite snake-test
     , rio >=0.1.12.0
     , snake
     , vty
+    , word-wrap
   default-language: Haskell2010
