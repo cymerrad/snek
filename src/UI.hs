@@ -32,16 +32,15 @@ import State
 import Text.Wrap (defaultWrapSettings, preserveIndentation)
 import Data.Aeson (encode)
 
-renderMatrix :: CharMatrix -> [Widget ()]
-renderMatrix = map str
+drawMatrix :: CharMatrix -> [Widget ()]
+drawMatrix = map str
 
 drawBoard :: GameState -> [Widget ()]
 drawBoard st = case st ^. stStatus of
   Running -> [a]
     where
       grid = st ^. stGrid
-      a0 : as = renderMatrix grid
-      a = foldl (<=>) a0 as
+      a = foldl1 (<=>) (drawMatrix grid)
   Ended -> [center . str $ "Game over"]
   Pause -> [t, fill ' ']
     where

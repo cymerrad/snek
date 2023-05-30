@@ -95,7 +95,7 @@ checkCollision = do
   when (outOfBounds || hitItself) gameOver
 
   when hitFud $ do
-    let foundFud : _ = snekFudIntersection
+    let foundFud = head snekFudIntersection
     stObjective . oLocations %= filter (/= foundFud)
     stObjective . oPoints += 1
     stSnek . sL += 1
