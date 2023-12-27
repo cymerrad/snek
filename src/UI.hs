@@ -28,6 +28,7 @@ import Data.Aeson.Encode.Pretty (encodePretty)
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Graphics.Vty (Output (displayBounds), outputIface, regionHeight, regionWidth)
 import Graphics.Vty qualified as V
+import Graphics.Vty.Platform.Unix (mkVty)
 import Logic (gameEvent)
 import State
 import Text.Wrap (defaultWrapSettings, preserveIndentation)
@@ -127,7 +128,7 @@ loop = do
     writeBChan chan Counter
     threadDelay 1000000
 
-  let buildVty = V.mkVty V.defaultConfig
+  let buildVty = mkVty V.defaultConfig
   initialVty <- buildVty
 
   terminalSize <- displayBounds $ outputIface initialVty
