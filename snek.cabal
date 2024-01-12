@@ -31,6 +31,9 @@ library
       State
       Types
       UI
+      UI.End
+      UI.Pause
+      UI.Running
       Util
   other-modules:
       Paths_snek

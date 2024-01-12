@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 module Types
-  ( App (..)
+  ( RA (..)
   , Options (..)
   ) where
 
@@ -12,14 +12,14 @@ data Options = Options
   { optionsVerbose :: !Bool
   }
 
-data App = App
+data RA = RA
   { appLogFunc :: !LogFunc
   , appProcessContext :: !ProcessContext
   , appOptions :: !Options
   -- Add other app-specific configuration information here
   }
 
-instance HasLogFunc App where
+instance HasLogFunc RA where
   logFuncL = lens appLogFunc (\x y -> x { appLogFunc = y })
-instance HasProcessContext App where
+instance HasProcessContext RA where
   processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
