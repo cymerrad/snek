@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      Game.Snek
+      Game.Snek2P
       Import
       Logic
       Run
@@ -32,6 +34,7 @@ library
       Types
       UI
       UI.End
+      UI.Menu
       UI.Pause
       UI.Running
       Util
